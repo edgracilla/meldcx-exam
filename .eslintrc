@@ -1,0 +1,24 @@
+{
+  "plugins": [
+    "jest",
+    "security"
+  ],
+  "extends": [
+    "airbnb/base",
+    "plugin:jest/recommended",
+    "plugin:security/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022
+  },
+  "rules": {
+    "security/detect-object-injection": "off", // !!!
+
+    "no-underscore-dangle": "off",
+    "import/extensions": [2, "ignorePackages"],
+    "import/no-extraneous-dependencies": [2, { "devDependencies": ["**/*.test.js"] }],
+  },
+  "ignorePatterns": [
+    "node_modules"
+  ]
+}
