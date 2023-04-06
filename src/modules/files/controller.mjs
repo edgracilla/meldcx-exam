@@ -1,7 +1,9 @@
 import { customAlphabet } from 'nanoid';
 import { extname, basename } from 'path';
 
-import localProvider from './providers/local.mjs';
+import config from '../../config.mjs';
+import localStorage from './providers/local.mjs';
+import googleStorage from './providers/google.mjs';
 import { ApiError, Cruder, logger } from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
@@ -9,7 +11,9 @@ const filesDb = new Cruder(fileUrl);
 
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 21);
 
-const provider = localProvider;
+const provider = config.provider === 'local'
+  ? localStorage
+  : googleStorage;
 
 /** handle upload */
 
@@ -24,7 +28,7 @@ async function handleUpload(data, meta) {
   const filename = `${publicKey}${ext}`;
 
   // Write file to disk or upload to storage provider
-  const filePath = await provider.writeFile(data.file, filename);
+  const filePath = await provider.uploadFile(data.file, filename);
 
   // Write file record
   filesDb.insert({
@@ -54,7 +58,7 @@ async function fetchFileData(publicKey) {
 
   try {
     // Get file data from any provider provided
-    const fileData = await provider.getFile(filePath);
+    const fileData = await provider.downloadFile(filePath);
 
     return {
       fileData,
@@ -84,7 +88,7 @@ async function del(privateKey, meta) {
 
   try {
     // Delete file from disk or storage provider
-    await provider.destroyFile(rec.filePath);
+    await provider.deleteFile(rec.filePath);
 
     // Delete file record
     const deleted = filesDb.del(rec.id);

@@ -27,4 +27,8 @@ node_modules/
 
 # uploaded files
 uploads
-# data.json
+temp
+
+# trash, for demo purposes only
+data.json
+provider-conf.json

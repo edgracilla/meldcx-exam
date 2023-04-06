@@ -16,7 +16,9 @@ const validate = ajv.compile({
   required: [
     'PORT',
     'FOLDER',
-    'REQ_PER_DAY',
+    'CONFIG',
+    'PROVIDER',
+
     'USER_PASS_KEY',
     'USER_PASS_IV',
     'JWT_SECRET',
@@ -33,6 +35,8 @@ export default {
   port,
   uploads,
   cronSched,
+  provider: process.env.PROVIDER,
+  providerConf: process.env.CONFIG,
   cors: {
     origin: '*',
   },
