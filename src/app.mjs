@@ -12,6 +12,7 @@ import rateLimit from '@fastify/rate-limit';
 
 import auth from './auth.mjs';
 import config from './config.mjs';
+import cleaner from './modules/cleanup/controller.mjs';
 import { logger, errHandler } from './cores/index.mjs';
 
 function app(rootPath) {
@@ -48,6 +49,7 @@ function app(rootPath) {
         server.log.error(err);
         process.exit(1);
       } else {
+        cleaner.fileCleanupJob();
         server.listen({ port: config.port });
       }
     });

@@ -1,45 +1,38 @@
-/* eslint-disable security/detect-non-literal-fs-filename */
-
-import fs from 'fs';
-import util from 'util';
-import fsp from 'fs/promises';
-
-import { pipeline } from 'stream';
 import { customAlphabet } from 'nanoid';
 import { extname, basename } from 'path';
 
-import config from '../../config.mjs';
+import localProvider from './providers/local.mjs';
 import { ApiError, Cruder, logger } from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
 const filesDb = new Cruder(fileUrl);
 
-const pump = util.promisify(pipeline);
-const readFileAsync = util.promisify(fs.readFile);
-
-// Using custom alphabet for ease of copying generated string
-// default nanoid() includes '-' which is not included when you double click the string
 const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 21);
+
+const provider = localProvider;
 
 /** handle upload */
 
 async function handleUpload(data, meta) {
   const { userId } = meta;
 
+  const now = Date.now();
   const publicKey = nanoid();
   const privateKey = nanoid();
-  const ext = extname(data.filename);
-  const filePath = `${config.uploads}/${publicKey}${ext}`;
 
-  // Write file to disc
-  await pump(data.file, fs.createWriteStream(filePath));
+  const ext = extname(data.filename);
+  const filename = `${publicKey}${ext}`;
+
+  // Write file to disk or upload to storage provider
+  const filePath = await provider.writeFile(data.file, filename);
 
   // Write file record
   filesDb.insert({
-    userId,
-    filePath,
     id: publicKey,
     privateKey,
+    filePath,
+    owner: userId,
+    createdAt: new Date(now).toISOString(),
   });
 
   return {
@@ -60,8 +53,8 @@ async function fetchFileData(publicKey) {
   const { filePath } = rec;
 
   try {
-    // Read file data asynchronously
-    const fileData = await readFileAsync(filePath);
+    // Get file data from any provider provided
+    const fileData = await provider.getFile(filePath);
 
     return {
       fileData,
@@ -85,13 +78,13 @@ async function del(privateKey, meta) {
     throw new ApiError(404, 'File not found!');
   }
 
-  if (rec.userId !== userId) {
+  if (rec.owner !== userId) {
     throw new ApiError(401, 'You are not authorized to perform the operation!');
   }
 
   try {
-    // Delete file from disk
-    await fsp.unlink(rec.filePath);
+    // Delete file from disk or storage provider
+    await provider.destroyFile(rec.filePath);
 
     // Delete file record
     const deleted = filesDb.del(rec.id);

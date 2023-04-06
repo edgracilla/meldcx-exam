@@ -4,15 +4,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const ajv = new Ajv({ allErrors: true });
-const port = +(process.env.PORT || 8080);
 const env = process.env.NODE_ENV || 'development';
 const uploads = process.env.FOLDER || './uploads';
+const cronSched = process.env.SCHED_CLEANUP || '0 8 * * *';
+
+const port = +process.env.PORT || 8080;
+const reqPerDay = +process.env.REQ_PER_DAY || 100;
 
 const validate = ajv.compile({
   type: 'object',
   required: [
     'PORT',
     'FOLDER',
+    'REQ_PER_DAY',
     'USER_PASS_KEY',
     'USER_PASS_IV',
     'JWT_SECRET',
@@ -28,7 +32,10 @@ export default {
   env,
   port,
   uploads,
-
+  cronSched,
+  cors: {
+    origin: '*',
+  },
   crypto: {
     iv: process.env.USER_PASS_IV,
     key: process.env.USER_PASS_KEY,
@@ -38,12 +45,6 @@ export default {
     expire: process.env.JWT_EXPIRE || '30m',
     refreshSecret: process.env.JWT_REFRESH_SECRET,
     refreshExpire: process.env.JWT_REFRESH_EXPIRE || '1d',
-  },
-
-  // -- fastify scpecific
-
-  cors: {
-    origin: '*',
   },
   ajv: {
     customOptions: {
@@ -55,18 +56,8 @@ export default {
     files: 1, // Max number of file fields
   },
   rateLimit: {
-    max: 100,
-    addHeaders: {
-      'retry-after': false,
-      'x-ratelimit-limit': false,
-      'x-ratelimit-reset': false,
-      'x-ratelimit-remaining': false,
-    },
-    addHeadersOnExceeding: {
-      'x-ratelimit-limit': false,
-      'x-ratelimit-reset': false,
-      'x-ratelimit-remaining': false,
-    },
+    max: reqPerDay,
+    timeWindow: '1d',
   },
   rateLimitMax404: 50,
 };
