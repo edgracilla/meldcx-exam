@@ -13,6 +13,8 @@ const validate = ajv.compile({
     'PORT',
     'USER_PASS_KEY',
     'USER_PASS_IV',
+    'JWT_SECRET',
+    'JWT_REFRESH_SECRET',
   ],
 });
 
@@ -27,6 +29,12 @@ export default {
   crypto: {
     iv: process.env.USER_PASS_IV,
     key: process.env.USER_PASS_KEY,
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET,
+    expire: process.env.JWT_EXPIRE || '30m',
+    refreshSecret: process.env.JWT_REFRESH_SECRET,
+    refreshExpire: process.env.JWT_REFRESH_EXPIRE || '1d',
   },
 
   // -- fastify scpecific

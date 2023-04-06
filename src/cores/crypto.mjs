@@ -19,7 +19,15 @@ const decrypt = (encrypted) => {
   return decrypted + decipher.final('utf8');
 };
 
+const safeCompare = (plainPass, encodedPass) => {
+  const decodedPass = decrypt(encodedPass);
+  const valid = crypto.timingSafeEqual(Buffer.from(plainPass), Buffer.from(decodedPass));
+
+  return valid;
+};
+
 export default {
   encrypt,
   decrypt,
+  safeCompare,
 };
