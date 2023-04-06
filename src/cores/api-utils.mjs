@@ -31,6 +31,11 @@ export function errHandler(err, req, reply) {
     return send(reply, content);
   }
 
+  if (/multipart$/.test(err.message)) {
+    content.name = 'UploadError';
+    return send(reply, content);
+  }
+
   logger.warn('---- DEBUG START DEBUG ----');
   logger.error(err); // TODO: clean
   logger.warn('---- DEBUG END DEBUG ----');
@@ -49,7 +54,7 @@ export function apiResponse(reply, data, code = 200) {
       .send({
         statusCode: 404,
         name: 'NotFoundError',
-        message: 'Either resource not found or you are not authorized to perform the operation.',
+        message: 'Resource not found!',
       });
   }
 

@@ -1,61 +1,110 @@
-import * as core from '../../cores/index.mjs';
+/* eslint-disable security/detect-non-literal-fs-filename */
+
+import fs from 'fs';
+import util from 'util';
+import fsp from 'fs/promises';
+
+import { pipeline } from 'stream';
+import { customAlphabet } from 'nanoid';
+import { extname, basename } from 'path';
+
+import config from '../../config.mjs';
+import { ApiError, Cruder, logger } from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
-const cruder = new core.Cruder(fileUrl);
-const { crypto, logger, ApiError } = core;
+const filesDb = new Cruder(fileUrl);
 
-/** create */
+const pump = util.promisify(pipeline);
+const readFileAsync = util.promisify(fs.readFile);
 
-async function create(data) {
-  const { username, password } = data;
+// Using custom alphabet for ease of copying generated string
+// default nanoid() includes '-' which is not included when you double click the string
+const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 21);
 
-  const user = cruder.list({ username });
+/** handle upload */
 
-  if (user.length) {
-    throw new ApiError(400, 'Username already exist!');
-  }
+async function handleUpload(data, meta) {
+  const { userId } = meta;
 
-  const ret = cruder.insert({
-    ...data,
-    password: crypto.encrypt(password),
+  const publicKey = nanoid();
+  const privateKey = nanoid();
+  const ext = extname(data.filename);
+  const filePath = `${config.uploads}/${publicKey}${ext}`;
+
+  // Write file to disc
+  await pump(data.file, fs.createWriteStream(filePath));
+
+  // Write file record
+  filesDb.insert({
+    userId,
+    filePath,
+    id: publicKey,
+    privateKey,
   });
 
-  return ret;
+  return {
+    publicKey,
+    privateKey,
+  };
 }
 
 /** read */
 
-async function read(id) {
-  const user = cruder.read(id);
+async function fetchFileData(publicKey) {
+  const rec = filesDb.read(publicKey);
 
-  // TODO: for debugging purposes only
-  logger.info(`Password: ${crypto.decrypt(user.password)}`);
+  if (!rec) {
+    throw new ApiError(404, 'File not found!');
+  }
 
-  return user;
-}
+  const { filePath } = rec;
 
-/** update */
+  try {
+    // Read file data asynchronously
+    const fileData = await readFileAsync(filePath);
 
-async function update(id, data) {
-  return cruder.update(id, data);
+    return {
+      fileData,
+      fileName: basename(filePath),
+    };
+  } catch (err) {
+    // Handle any errors that occur during file reading
+    logger.warn(`Error fetching file data: ${err}`);
+    throw new ApiError(400, 'Error fetching file!');
+  }
 }
 
 /** delete */
 
-async function del(id) {
-  return cruder.del(id);
-}
+async function del(privateKey, meta) {
+  const { userId } = meta;
 
-/** list */
+  const rec = filesDb.read(privateKey, 'privateKey');
 
-async function list(filter) {
-  return cruder.list(filter);
+  if (!rec) {
+    throw new ApiError(404, 'File not found!');
+  }
+
+  if (rec.userId !== userId) {
+    throw new ApiError(401, 'You are not authorized to perform the operation!');
+  }
+
+  try {
+    // Delete file from disk
+    await fsp.unlink(rec.filePath);
+
+    // Delete file record
+    const deleted = filesDb.del(rec.id);
+
+    return { deleted };
+  } catch (err) {
+    logger.warn(err);
+    throw new ApiError(500, 'Error deleting file!');
+  }
 }
 
 export default {
-  create,
-  read,
-  update,
+  handleUpload,
+  fetchFileData,
   del,
-  list,
 };

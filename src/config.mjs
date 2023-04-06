@@ -6,11 +6,13 @@ dotenv.config();
 const ajv = new Ajv({ allErrors: true });
 const port = +(process.env.PORT || 8080);
 const env = process.env.NODE_ENV || 'development';
+const uploads = process.env.FOLDER || './uploads';
 
 const validate = ajv.compile({
   type: 'object',
   required: [
     'PORT',
+    'FOLDER',
     'USER_PASS_KEY',
     'USER_PASS_IV',
     'JWT_SECRET',
@@ -25,6 +27,7 @@ if (!validate(process.env)) {
 export default {
   env,
   port,
+  uploads,
 
   crypto: {
     iv: process.env.USER_PASS_IV,
@@ -47,6 +50,9 @@ export default {
       allErrors: true,
       keywords: ['prereq'],
     },
+  },
+  multipart: {
+    files: 1, // Max number of file fields
   },
   rateLimit: {
     max: 100,

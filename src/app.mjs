@@ -7,6 +7,7 @@ import { globbySync } from 'globby';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import formbody from '@fastify/formbody';
+import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 
 import auth from './auth.mjs';
@@ -23,6 +24,7 @@ function app(rootPath) {
   server.register(formbody);
   server.register(cors, config.cors);
   server.register(rateLimit, config.rateLimit);
+  server.register(multipart, config.multipart);
 
   // -- api loader
 
@@ -33,6 +35,7 @@ function app(rootPath) {
       server.register(await import(routePath));
     }
 
+    server.decorateRequest('meta', null);
     server.addHook('preValidation', auth(server));
     server.setErrorHandler(errHandler);
   });

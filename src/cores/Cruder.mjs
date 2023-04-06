@@ -35,7 +35,7 @@ export default class Cruder {
 
     const newEntry = {
       ...data,
-      id: nanoid(),
+      id: data.id || nanoid(),
     };
 
     records.push(newEntry);
@@ -44,9 +44,9 @@ export default class Cruder {
     return newEntry;
   }
 
-  read(id) {
+  read(id, prop = 'id') {
     const records = this.getContents();
-    const result = records.filter((rec) => rec.id === id);
+    const result = records.filter((rec) => rec[prop] === id);
 
     return result.length ? result[0] : null;
   }

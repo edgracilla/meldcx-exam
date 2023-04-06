@@ -2,36 +2,39 @@ import { dirname, basename } from 'path';
 import { apiResponse } from '../../cores/api-utils.mjs';
 
 import ctl from './controller.mjs';
-import vld from './validation.mjs';
 
 async function routes(fastify) {
   const resource = basename(dirname(import.meta.url));
 
-  /** create */
+  /** upload file */
 
-  fastify.post(`/${resource}`, vld.postSchema, async (req, reply) => {
-    const { body, meta } = req;
-    const result = await ctl.create(body, meta);
+  fastify.post(`/${resource}/upload`, async (req, reply) => {
+    const data = await req.file();
+    const result = await ctl.handleUpload(data, req.meta);
 
     return apiResponse(reply, result, 201);
   });
 
-  /** read */
+  /** get fle */
 
   fastify.get(`/${resource}/:publicKey`, async (req, reply) => {
-    const { params } = req;
-    const result = await ctl.read(params.id);
+    const { publicKey } = req.params;
+    const ret = await ctl.fetchFileData(publicKey);
 
-    return apiResponse(reply, result);
+    // Set appropriate response headers for file download
+    reply.header('Content-Disposition', `attachment; filename="${ret.fileName}"`);
+    reply.type('application/octet-stream');
+
+    return reply.send(ret.fileData);
   });
 
-  /** delete */
+  /** delete file */
 
   fastify.delete(`/${resource}/:privateKey`, async (req, reply) => {
-    const { params, meta } = req;
+    const { privateKey } = req.params;
 
-    const result = await ctl.del(params.id, meta);
-    return apiResponse(reply, result, 204);
+    const result = await ctl.del(privateKey, req.meta);
+    return apiResponse(reply, result, 200);
   });
 }
 

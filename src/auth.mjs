@@ -27,7 +27,8 @@ const auth = () => async (req) => {
   if (!authzn.startsWith('Bearer')) throw new ApiError(401, 'Invalid authentication token.');
 
   try {
-    jwt.verify(authzn.slice(7), config.jwt.secret);
+    const { u: userId } = jwt.verify(authzn.slice(7), config.jwt.secret);
+    req.meta = { userId };
   } catch (error) {
     throw new ApiError(403, error.message);
   }

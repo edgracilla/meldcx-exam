@@ -1,1 +1,8 @@
-[{"username":"foo","password":"viwSkAtguGBfzhUtUaM5XA==","id":"UJxyHqpIiJLz01o6giCms"},{"username":"foox","password":"0rAdTOjKru3Pg/inhAsN7Q==","id":"9g_bfnv_NZ0PtLEjUuSFu"},{"username":"fooz","password":"+hoVIbd6swoCcwJiBdyaXw==","id":"uSFUVlUQYQA0n75DwytBE"},{"username":"fooza","password":"+hoVIbd6swoCcwJiBdyaXw==","id":"BvooRxwQ7Yi60I7iaV4Yx"}]
+[
+    {
+        "userId": "qOpN4KdTei0PPdJ7ShXZX",
+        "filePath": "./uploads/UD47iuvW6Orwr4V5DO9sq.csv",
+        "id": "UD47iuvW6Orwr4V5DO9sq",
+        "privateKey": "i25ZwRSnsANvI-_jTRp1g"
+    }
+]
