@@ -10,8 +10,9 @@ const env = process.env.NODE_ENV || 'development';
 const validate = ajv.compile({
   type: 'object',
   required: [
-    'MONGO_URL',
-    'MONGO_DB_NAME',
+    'PORT',
+    'USER_PASS_KEY',
+    'USER_PASS_IV',
   ],
 });
 
@@ -23,14 +24,9 @@ export default {
   env,
   port,
 
-  // -- dependencies
-
-  mongoDb: {
-    type: process.env.MONGO_TYPE,
-    dbURL: process.env.MONGO_URL,
-    sslCA: process.env.MONGO_SSL_CA,
-    recordset: process.env.MONGO_RS,
-    dbName: process.env.MONGO_DB_NAME,
+  crypto: {
+    iv: process.env.USER_PASS_IV,
+    key: process.env.USER_PASS_KEY,
   },
 
   // -- fastify scpecific

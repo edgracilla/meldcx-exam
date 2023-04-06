@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "index.mjs"],
+  "ext": "mjs",
+  "ignore": ["tests/**/*.test.js", "src/modules/**/*.json"],
+  "exec": "node index.mjs"
+}
