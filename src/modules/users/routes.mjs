@@ -9,11 +9,19 @@ async function routes(fastify) {
 
   /** create */
 
-  fastify.post(`/${resource}`, vld.postSchema, async (req, reply) => {
+  fastify.post(`/${resource}/signup`, vld.postSchema, async (req, reply) => {
     const { body, meta } = req;
     const result = await ctl.create(body, meta);
 
     return apiResponse(reply, result, 201);
+  });
+
+  /** login */
+
+  fastify.post(`/${resource}/login`, vld.postSchema, async (req, reply) => {
+    const result = await ctl.login(req.body);
+
+    return apiResponse(reply, result, 200);
   });
 
   /** read */

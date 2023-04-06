@@ -21,9 +21,12 @@ const decrypt = (encrypted) => {
 
 const safeCompare = (plainPass, encodedPass) => {
   const decodedPass = decrypt(encodedPass);
-  const valid = crypto.timingSafeEqual(Buffer.from(plainPass), Buffer.from(decodedPass));
 
-  return valid;
+  if (decodedPass.length !== plainPass.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(Buffer.from(plainPass), Buffer.from(decodedPass));
 };
 
 export default {

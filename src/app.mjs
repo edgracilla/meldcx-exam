@@ -1,17 +1,17 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 
-import { globbySync } from 'globby';
 import fastify from 'fastify';
+import { globbySync } from 'globby';
 
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import formbody from '@fastify/formbody';
 import rateLimit from '@fastify/rate-limit';
 
-import { logger, errHandler } from './cores/index.mjs';
-
+import auth from './auth.mjs';
 import config from './config.mjs';
+import { logger, errHandler } from './cores/index.mjs';
 
 function app(rootPath) {
   const server = fastify({
@@ -33,6 +33,7 @@ function app(rootPath) {
       server.register(await import(routePath));
     }
 
+    server.addHook('preValidation', auth(server));
     server.setErrorHandler(errHandler);
   });
 

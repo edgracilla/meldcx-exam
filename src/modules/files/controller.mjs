@@ -1,18 +1,8 @@
-import jwt from 'jsonwebtoken';
-
-import config from '../../config.mjs';
 import * as core from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
 const cruder = new core.Cruder(fileUrl);
 const { crypto, logger, ApiError } = core;
-
-const {
-  secret,
-  expire,
-  refreshExpire,
-  refreshSecret,
-} = config.jwt;
 
 /** create */
 
@@ -62,48 +52,10 @@ async function list(filter) {
   return cruder.list(filter);
 }
 
-/** TODO: fill here */
-
-async function makeTokens(user) {
-  const jwtRefreshContent = {
-    u: user.id,
-  };
-
-  const jwtAuthContent = {
-    u: user.id,
-  };
-
-  const authToken = jwt.sign(jwtAuthContent, secret, { expiresIn: expire });
-  const refreshToken = jwt.sign(jwtRefreshContent, refreshSecret, { expiresIn: refreshExpire });
-
-  return {
-    authToken,
-    refreshToken,
-  };
-}
-
-async function login(data) {
-  const { username, password } = data;
-  const users = await cruder.list({ username });
-
-  if (!users.length) {
-    throw new ApiError(404, 'User not found!');
-  }
-
-  const user = users[0];
-
-  if (!crypto.safeCompare(password, user.password)) {
-    throw new ApiError(401, 'Invalid password!');
-  }
-
-  return makeTokens(user);
-}
-
 export default {
   create,
   read,
   update,
   del,
   list,
-  login,
 };

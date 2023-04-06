@@ -1,3 +1,5 @@
+import lodash from 'lodash';
+
 const body = {
   type: 'object',
   required: [
@@ -10,7 +12,14 @@ const body = {
   },
 };
 
+const query = {
+  id: { type: 'string' },
+  username: { type: 'string' },
+};
+
 export default {
   body,
   postSchema: { schema: { body } },
+  getSchema: { schema: { querystring: query } },
+  patchSchema: { schema: { body: lodash.pick(body, ['type', 'properties']) } },
 };
