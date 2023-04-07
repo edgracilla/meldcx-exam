@@ -7,7 +7,7 @@ import googleStorage from './providers/google.mjs';
 import { ApiError, Cruder, logger } from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
-const filesDb = new Cruder(fileUrl);
+const model = new Cruder(fileUrl);
 const nanoid = customAlphabet(config.idAlphabet, 21);
 
 // TODO: Use switch if we have more than 2 providers
@@ -32,7 +32,7 @@ async function handleUpload(data, meta) {
   const filePath = await provider.uploadFile(data.file, filename);
 
   // Write file record
-  filesDb.insert({
+  model.insert({
     id: publicKey,
     privateKey,
     filePath,
@@ -50,7 +50,7 @@ async function handleUpload(data, meta) {
 
 async function fetchFileData(publicKey) {
   // Get file record using publicKey/rec id
-  const rec = filesDb.read(publicKey);
+  const rec = model.read(publicKey);
 
   if (!rec) {
     throw new ApiError(404, 'File not found!');
@@ -73,6 +73,12 @@ async function fetchFileData(publicKey) {
   }
 }
 
+// -- Get file record
+
+function getRec(id) {
+  return model.read(id);
+}
+
 // -- Reusable destroy file function
 
 async function destroy(rec) {
@@ -83,7 +89,7 @@ async function destroy(rec) {
     await provider.deleteFile(filePath);
 
     // Delete file record
-    const deleted = filesDb.del(id);
+    const deleted = model.del(id);
 
     return { deleted };
   } catch (err) {
@@ -98,7 +104,7 @@ async function del(privateKey, meta) {
   const { userId } = meta;
 
   // Get file record using privateKey
-  const rec = filesDb.read(privateKey, 'privateKey');
+  const rec = model.read(privateKey, 'privateKey');
 
   if (!rec) {
     throw new ApiError(404, 'File not found!');
@@ -115,14 +121,17 @@ async function del(privateKey, meta) {
   return result;
 }
 
+// -- List file records
+
 function list(filter) {
-  return filesDb.list(filter);
+  return model.list(filter);
 }
 
 export default {
   handleUpload,
   fetchFileData,
   destroy,
+  getRec,
   list,
   del,
 };
