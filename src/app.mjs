@@ -5,6 +5,7 @@
 import fs from 'fs';
 import fastify from 'fastify';
 import { globbySync } from 'globby';
+import { pathToFileURL } from 'url';
 
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -32,10 +33,11 @@ function app(rootPath) {
   // API modules loader
 
   server.after(async () => {
-    const routes = globbySync(`${rootPath}/src/modules/*/routes.mjs`);
+    const routes = globbySync(`${rootPath}/src/modules/*/routes.mjs`.replace(/\\/g, '/'));
 
     for (const routePath of routes) {
-      server.register(await import(routePath));
+      const fileUrl = pathToFileURL(routePath).href;
+      server.register(await import(fileUrl));
     }
 
     server.decorateRequest('meta', null);
