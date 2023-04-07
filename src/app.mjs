@@ -1,6 +1,8 @@
+/* eslint-disable security/detect-non-literal-fs-filename */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 
+import fs from 'fs';
 import fastify from 'fastify';
 import { globbySync } from 'globby';
 
@@ -40,6 +42,11 @@ function app(rootPath) {
     server.addHook('preValidation', auth(server));
     server.setErrorHandler(errHandler);
   });
+
+  // Create upload folder if not exist
+  if (!fs.existsSync(config.uploads)) {
+    fs.mkdirSync(config.uploads);
+  }
 
   // App init
 
