@@ -6,7 +6,7 @@ import app from './src/app.mjs';
 const root = dirname(fileURLToPath(import.meta.url));
 const server = app(root);
 
-// -- exit handler
+// Exit handler for gracefull app closing
 
 ['SIGHUP', 'SIGINT', 'SIGTERM'].forEach((signal) => {
   process.on(signal, () => {

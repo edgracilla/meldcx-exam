@@ -15,7 +15,7 @@ const provider = config.provider === 'local'
   ? localStorage
   : googleStorage;
 
-/** handle upload */
+// -- File upload handler
 
 async function handleUpload(data, meta) {
   const { userId } = meta;
@@ -46,7 +46,7 @@ async function handleUpload(data, meta) {
   };
 }
 
-/** read */
+// -- File download handler
 
 async function fetchFileData(publicKey) {
   // Get file record using publicKey/rec id
@@ -73,6 +73,8 @@ async function fetchFileData(publicKey) {
   }
 }
 
+// -- Reusable destroy file function
+
 async function destroy(rec) {
   const { id, filePath } = rec;
 
@@ -90,7 +92,7 @@ async function destroy(rec) {
   }
 }
 
-/** delete */
+// -- Del file request handler
 
 async function del(privateKey, meta) {
   const { userId } = meta;

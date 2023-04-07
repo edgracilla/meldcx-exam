@@ -7,7 +7,7 @@ import vld from './validation.mjs';
 async function routes(fastify) {
   const resource = basename(dirname(import.meta.url));
 
-  /** create */
+  // -- Signup
 
   fastify.post(`/${resource}/signup`, vld.postSchema, async (req, reply) => {
     const { body, meta } = req;
@@ -16,7 +16,7 @@ async function routes(fastify) {
     return apiResponse(reply, result, 201);
   });
 
-  /** login */
+  // -- Login
 
   fastify.post(`/${resource}/login`, vld.postSchema, async (req, reply) => {
     const result = await ctl.auth(req.body);
@@ -24,7 +24,7 @@ async function routes(fastify) {
     return apiResponse(reply, result, 200);
   });
 
-  /** read */
+  // -- Get rec
 
   fastify.get(`/${resource}/:id`, async (req, reply) => {
     const { params } = req;
@@ -33,7 +33,7 @@ async function routes(fastify) {
     return apiResponse(reply, result);
   });
 
-  /** update */
+  // -- Update
 
   fastify.patch(`/${resource}/:id`, vld.patchSchema, async (req, reply) => {
     const { params, body, meta } = req;
@@ -42,7 +42,7 @@ async function routes(fastify) {
     return apiResponse(reply, result);
   });
 
-  /** delete */
+  // -- Delete
 
   fastify.delete(`/${resource}/:id`, async (req, reply) => {
     const { params, meta } = req;
@@ -51,7 +51,7 @@ async function routes(fastify) {
     return apiResponse(reply, result, 204);
   });
 
-  /** list */
+  // -- List rec
 
   fastify.get(`/${resource}`, vld.getSchema, async (req, reply) => {
     const { query, meta } = req;

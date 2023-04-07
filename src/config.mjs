@@ -6,7 +6,7 @@ dotenv.config();
 const ajv = new Ajv({ allErrors: true });
 const env = process.env.NODE_ENV || 'development';
 const uploads = process.env.FOLDER || './uploads';
-const cronSched = process.env.SCHED_CLEANUP || '0 8 * * *';
+const cronSched = process.env.SCHED_CLEANUP || '0 0 * * *';
 
 const port = +process.env.PORT || 8080;
 const fileTTL = +process.env.FILE_DAYS_TTL || 5;

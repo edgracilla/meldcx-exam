@@ -9,9 +9,9 @@ const model = new core.Cruder(fileUrl);
 const { secret, expire } = config.jwt;
 const { crypto, logger, ApiError } = core;
 
-/** create */
+// -- Create user
 
-async function create(data) {
+function create(data) {
   const { username, password } = data;
 
   const user = model.list({ username });
@@ -28,36 +28,36 @@ async function create(data) {
   return ret;
 }
 
-/** read */
+// -- Get user
 
 function read(id) {
   const user = model.read(id);
 
-  // TODO: for debugging purposes only
+  // NOTE: for debugging/demo purposes only!
   logger.info(`Password: ${crypto.decrypt(user.password)}`);
 
   return user;
 }
 
-/** update */
+// -- Update
 
 function update(id, data) {
   return model.update(id, data);
 }
 
-/** delete */
+// -- Delete
 
-async function del(id) {
+function del(id) {
   return model.del(id);
 }
 
-/** list */
+// -- List
 
-async function list(filter) {
+function list(filter) {
   return model.list(filter);
 }
 
-/** TODO: fill here */
+// -- Helper: token generator
 
 function makeTokens(user) {
   const jwtAuthContent = {
@@ -72,9 +72,11 @@ function makeTokens(user) {
   };
 }
 
-async function auth(data) {
+// -- Handles user login
+
+function auth(data) {
   const { username, password } = data;
-  const users = await model.list({ username });
+  const users = model.list({ username });
 
   if (!users.length) {
     throw new ApiError(404, 'User not found!');
@@ -96,4 +98,5 @@ export default {
   del,
   list,
   auth,
+  makeTokens,
 };

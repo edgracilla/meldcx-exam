@@ -6,7 +6,7 @@ import ctl from './controller.mjs';
 async function routes(fastify) {
   const resource = basename(dirname(import.meta.url));
 
-  /** upload file */
+  // -- File upload route
 
   fastify.post(`/${resource}/upload`, async (req, reply) => {
     const data = await req.file();
@@ -15,7 +15,7 @@ async function routes(fastify) {
     return apiResponse(reply, result, 201);
   });
 
-  /** get fle */
+  // -- File download
 
   fastify.get(`/${resource}/:publicKey`, async (req, reply) => {
     const { publicKey } = req.params;
@@ -28,7 +28,7 @@ async function routes(fastify) {
     return reply.send(ret.fileData);
   });
 
-  /** delete file */
+  // -- File delete
 
   fastify.delete(`/${resource}/:privateKey`, async (req, reply) => {
     const { privateKey } = req.params;

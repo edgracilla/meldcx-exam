@@ -27,7 +27,7 @@ function app(rootPath) {
   server.register(rateLimit, config.rateLimit);
   server.register(multipart, config.multipart);
 
-  // -- api loader
+  // API modules loader
 
   server.after(async () => {
     const routes = globbySync(`${rootPath}/src/modules/*/routes.mjs`);
@@ -41,7 +41,7 @@ function app(rootPath) {
     server.setErrorHandler(errHandler);
   });
 
-  // -- app init
+  // App init
 
   if (config.env !== 'test') {
     server.ready(async (err) => {
