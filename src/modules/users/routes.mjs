@@ -19,7 +19,7 @@ async function routes(fastify) {
   /** login */
 
   fastify.post(`/${resource}/login`, vld.postSchema, async (req, reply) => {
-    const result = await ctl.login(req.body);
+    const result = await ctl.auth(req.body);
 
     return apiResponse(reply, result, 200);
   });

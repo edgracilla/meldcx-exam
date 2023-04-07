@@ -8,9 +8,9 @@ import { ApiError, Cruder, logger } from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
 const filesDb = new Cruder(fileUrl);
+const nanoid = customAlphabet(config.idAlphabet, 21);
 
-const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', 21);
-
+// TODO: Use switch if we have more than 2 providers
 const provider = config.provider === 'local'
   ? localStorage
   : googleStorage;
@@ -20,6 +20,7 @@ const provider = config.provider === 'local'
 async function handleUpload(data, meta) {
   const { userId } = meta;
 
+  // File rec prep
   const now = Date.now();
   const publicKey = nanoid();
   const privateKey = nanoid();
@@ -48,6 +49,7 @@ async function handleUpload(data, meta) {
 /** read */
 
 async function fetchFileData(publicKey) {
+  // Get file record using publicKey/rec id
   const rec = filesDb.read(publicKey);
 
   if (!rec) {
@@ -71,27 +73,15 @@ async function fetchFileData(publicKey) {
   }
 }
 
-/** delete */
-
-async function del(privateKey, meta) {
-  const { userId } = meta;
-
-  const rec = filesDb.read(privateKey, 'privateKey');
-
-  if (!rec) {
-    throw new ApiError(404, 'File not found!');
-  }
-
-  if (rec.owner !== userId) {
-    throw new ApiError(401, 'You are not authorized to perform the operation!');
-  }
+async function destroy(rec) {
+  const { id, filePath } = rec;
 
   try {
     // Delete file from disk or storage provider
-    await provider.deleteFile(rec.filePath);
+    await provider.deleteFile(filePath);
 
     // Delete file record
-    const deleted = filesDb.del(rec.id);
+    const deleted = filesDb.del(id);
 
     return { deleted };
   } catch (err) {
@@ -100,8 +90,37 @@ async function del(privateKey, meta) {
   }
 }
 
+/** delete */
+
+async function del(privateKey, meta) {
+  const { userId } = meta;
+
+  // Get file record using privateKey
+  const rec = filesDb.read(privateKey, 'privateKey');
+
+  if (!rec) {
+    throw new ApiError(404, 'File not found!');
+  }
+
+  // Del file sec, only owner can delete thier own file
+  if (rec.owner !== userId) {
+    throw new ApiError(401, 'You are not authorized to perform the operation!');
+  }
+
+  // Call reusable destroy file function
+  const result = await destroy(rec);
+
+  return result;
+}
+
+function list(filter) {
+  return filesDb.list(filter);
+}
+
 export default {
   handleUpload,
   fetchFileData,
+  destroy,
+  list,
   del,
 };

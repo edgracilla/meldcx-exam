@@ -9,7 +9,9 @@ const uploads = process.env.FOLDER || './uploads';
 const cronSched = process.env.SCHED_CLEANUP || '0 8 * * *';
 
 const port = +process.env.PORT || 8080;
+const fileTTL = +process.env.FILE_DAYS_TTL || 5;
 const reqPerDay = +process.env.REQ_PER_DAY || 100;
+const idAlphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 
 const validate = ajv.compile({
   type: 'object',
@@ -19,10 +21,9 @@ const validate = ajv.compile({
     'CONFIG',
     'PROVIDER',
 
-    'USER_PASS_KEY',
-    'USER_PASS_IV',
     'JWT_SECRET',
-    'JWT_REFRESH_SECRET',
+    'USER_PASS_IV',
+    'USER_PASS_KEY',
   ],
 });
 
@@ -34,7 +35,9 @@ export default {
   env,
   port,
   uploads,
+  fileTTL,
   cronSched,
+  idAlphabet,
   provider: process.env.PROVIDER,
   providerConf: process.env.CONFIG,
   cors: {
@@ -46,14 +49,11 @@ export default {
   },
   jwt: {
     secret: process.env.JWT_SECRET,
-    expire: process.env.JWT_EXPIRE || '30m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET,
-    refreshExpire: process.env.JWT_REFRESH_EXPIRE || '1d',
+    expire: process.env.JWT_EXPIRE || '1h',
   },
   ajv: {
     customOptions: {
       allErrors: true,
-      keywords: ['prereq'],
     },
   },
   multipart: {
@@ -63,5 +63,4 @@ export default {
     max: reqPerDay,
     timeWindow: '1d',
   },
-  rateLimitMax404: 50,
 };

@@ -4,28 +4,23 @@ import config from '../../config.mjs';
 import * as core from '../../cores/index.mjs';
 
 const fileUrl = import.meta.url;
-const cruder = new core.Cruder(fileUrl);
-const { crypto, logger, ApiError } = core;
+const model = new core.Cruder(fileUrl);
 
-const {
-  secret,
-  expire,
-  refreshExpire,
-  refreshSecret,
-} = config.jwt;
+const { secret, expire } = config.jwt;
+const { crypto, logger, ApiError } = core;
 
 /** create */
 
 async function create(data) {
   const { username, password } = data;
 
-  const user = cruder.list({ username });
+  const user = model.list({ username });
 
   if (user.length) {
     throw new ApiError(400, 'Username already exist!');
   }
 
-  const ret = cruder.insert({
+  const ret = model.insert({
     ...data,
     password: crypto.encrypt(password),
   });
@@ -35,8 +30,8 @@ async function create(data) {
 
 /** read */
 
-async function read(id) {
-  const user = cruder.read(id);
+function read(id) {
+  const user = model.read(id);
 
   // TODO: for debugging purposes only
   logger.info(`Password: ${crypto.decrypt(user.password)}`);
@@ -46,45 +41,40 @@ async function read(id) {
 
 /** update */
 
-async function update(id, data) {
-  return cruder.update(id, data);
+function update(id, data) {
+  return model.update(id, data);
 }
 
 /** delete */
 
 async function del(id) {
-  return cruder.del(id);
+  return model.del(id);
 }
 
 /** list */
 
 async function list(filter) {
-  return cruder.list(filter);
+  return model.list(filter);
 }
 
 /** TODO: fill here */
 
-async function makeTokens(user) {
-  const jwtRefreshContent = {
-    u: user.id,
-  };
-
+function makeTokens(user) {
   const jwtAuthContent = {
     u: user.id,
   };
 
+  // TODO: add refresh tokens
   const authToken = jwt.sign(jwtAuthContent, secret, { expiresIn: expire });
-  const refreshToken = jwt.sign(jwtRefreshContent, refreshSecret, { expiresIn: refreshExpire });
 
   return {
     authToken,
-    refreshToken,
   };
 }
 
-async function login(data) {
+async function auth(data) {
   const { username, password } = data;
-  const users = await cruder.list({ username });
+  const users = await model.list({ username });
 
   if (!users.length) {
     throw new ApiError(404, 'User not found!');
@@ -105,5 +95,5 @@ export default {
   update,
   del,
   list,
-  login,
+  auth,
 };
